@@ -1,0 +1,18 @@
+[package]
+name = "rpg"
+version = "0.1.0"
+authors = ["Marcel Müller <neikos@neikos.email>"]
+description = "A simple Voxel based game, trying to implement different mechanism."
+
+[features]
+default = ["client"]
+
+[dependencies.core]
+path = "src/core"
+
+[dependencies.server]
+path = "src/server"
+
+[dependencies.client]
+path = "src/client"
+optional = true
