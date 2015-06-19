@@ -33,6 +33,9 @@ fn main() {
                         let players = state.get_players();
                         println!("{} players currently connected/connecting",
                                  players.len());
+                        for player in players.iter() {
+                            println!("  {} -> {}", player.0, player.1);
+                        }
                     },
                     _ => {
                         println!("Did not recognize your command!");
