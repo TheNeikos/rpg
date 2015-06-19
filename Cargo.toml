@@ -8,11 +8,11 @@ description = "A simple Voxel based game, trying to implement different mechanis
 default = ["client"]
 
 [dependencies.shared]
-path = "src/shared"
+path = "./shared"
 
 [dependencies.server]
-path = "src/server"
+path = "./server"
 
 [dependencies.client]
-path = "src/client"
+path = "./client"
 optional = true
