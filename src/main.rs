@@ -3,6 +3,8 @@
 extern crate server;
 
 use server::RpgServer;
+use server::WorldState;
+
 use std::io::{self, BufRead, Write};
 
 fn main() {
@@ -23,7 +25,15 @@ fn main() {
                     "exit"|"quit"|"stop" => {
                         println!("Exiting!");
                         break;
-                    }
+                    },
+                    "players" => {
+                        // TODO: Print current players!!!
+                        let arc_state = server.get_state();
+                        let state = arc_state.read().unwrap();
+                        let players = state.get_players();
+                        println!("{} players currently connected/connecting",
+                                 players.len());
+                    },
                     _ => {
                         println!("Did not recognize your command!");
                     }

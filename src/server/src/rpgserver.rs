@@ -2,9 +2,12 @@ use std::io;
 use std::net::{TcpListener};
 use std::thread::{JoinHandle, Builder};
 use std::sync::mpsc::{channel, Sender};
+use std::sync::{Arc, RwLock};
 
+use worldstate::WorldState;
 use shared::{game_loop, LoopAction};
 use servermessage::{ServerEvent, WorldEvent};
+use player::Player;
 
 #[derive(PartialEq, Eq, Debug, Display)]
 pub enum ServerStatus {
@@ -26,6 +29,8 @@ pub struct RpgServer {
     server_thread: Option<JoinHandle<()>>,
 
     socket_thread: Option<JoinHandle<()>>,
+
+    state: Arc<RwLock<WorldState>>,
 }
 
 impl RpgServer {
@@ -39,13 +44,19 @@ impl RpgServer {
             server_sender: None,
             server_thread: None,
             socket_thread: None,
+            // TODO: Don't actually do this... read it from somewhere
+            state: Arc::new(RwLock::new(WorldState::new())),
         })
+    }
+
+    pub fn get_state(&self) -> Arc<RwLock<WorldState>> {
+        self.state.clone()
     }
 
     pub fn status(&self) -> ServerStatus {
         let sts = (self.world_thread.is_some(),
-                   self.server_thread.is_some(),
-                   self.socket_thread.is_some());
+        self.server_thread.is_some(),
+        self.socket_thread.is_some());
 
         match sts {
             (false, false,false) => ServerStatus::Stopped,
@@ -72,20 +83,26 @@ impl RpgServer {
         // Start the Server Loop, which is the thread that updates at a fixed
         // tick of 60 Ticks per Second for now
         let (tx, rx) = channel();
+        let mut state = self.state.clone();
+        let server_tx = tx.clone();
         self.server_sender = Some(tx);
         self.server_thread = Builder::new().name("Server".to_string()).spawn(move||{
+            let mut state = state;
+            let server_tx = server_tx;
+
             // 16 million nano seconds should be enough right?!
             // TODO: Check for possible adaptive solution?
             game_loop(16666667, move|tick| {
-                use servermessage::ServerEvent::*;
                 loop {
+                    use servermessage::ServerEvent::*;
                     match rx.try_recv() {
                         Ok(event) => {
                             match event {
                                 Quit => return LoopAction::Quit,
                                 ClientConnected(stream) => {
-                                    // TODO: Implement the Client here
-                                    println!("Got a stream ;3");
+                                    let mut state = (*state).write().unwrap();
+                                    let mut players = state.mut_get_players();
+                                    players.push(Player::new(server_tx.clone(),stream));
                                 }
                             }
                         },
