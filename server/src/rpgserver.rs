@@ -103,6 +103,13 @@ impl RpgServer {
                                     let mut state = (*state).write().unwrap();
                                     let mut players = state.mut_get_players();
                                     players.push(Player::new(server_tx.clone(),stream));
+                                },
+                                ClientDisconnected(id) => {
+                                    println!("Disconnecting player! {}", id);
+                                    let mut state = (*state).write().unwrap();
+                                    let mut players = state.mut_get_players();
+                                    let index = players.iter().position(|x| x.get_id() == id).unwrap();
+                                    players.remove(index);
                                 }
                             }
                         },

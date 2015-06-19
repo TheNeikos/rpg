@@ -6,5 +6,6 @@ pub enum WorldEvent {
 
 pub enum ServerEvent {
     Quit,
-    ClientConnected(TcpStream)
+    ClientConnected(TcpStream),
+    ClientDisconnected(usize),
 }
