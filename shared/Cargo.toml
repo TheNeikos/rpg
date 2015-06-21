@@ -5,3 +5,9 @@ authors = ["Marcel Müller <neikos@neikos.email>"]
 
 [dependencies.clock_ticks]
 version = "*"
+
+[dependencies.rustc-serialize]
+version = "0.3"
+
+[dependencies.bincode]
+version = "0.3"
