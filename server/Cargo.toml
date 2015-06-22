@@ -1,4 +1,7 @@
 [package]
-name = "core"
+name = "server"
 version = "0.1.0"
 authors = ["Marcel Müller <neikos@neikos.email>"]
+
+[dependencies.shared]
+path = "../shared/"

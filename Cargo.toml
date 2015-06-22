@@ -7,12 +7,12 @@ description = "A simple Voxel based game, trying to implement different mechanis
 [features]
 default = ["client"]
 
-[dependencies.core]
-path = "src/core"
+[dependencies.shared]
+path = "./shared"
 
 [dependencies.server]
-path = "src/server"
+path = "./server"
 
 [dependencies.client]
-path = "src/client"
+path = "./client"
 optional = true
