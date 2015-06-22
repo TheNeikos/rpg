@@ -1,6 +1,9 @@
 #![feature(convert)]
 
 extern crate server;
+extern crate shared;
+
+mod tests;
 
 use server::RpgServer;
 use server::WorldState;
