@@ -3,6 +3,8 @@ use std::net::{TcpListener};
 use std::thread::{JoinHandle, Builder};
 use std::sync::mpsc::{channel, Sender};
 use std::sync::{Arc, RwLock};
+use std::net::SocketAddr;
+use std::io::Error;
 
 use worldstate::WorldState;
 use shared::{game_loop, LoopAction};
@@ -106,10 +108,16 @@ impl RpgServer {
                                     players.insert(new_player.get_id(), new_player);
                                 },
                                 ClientDisconnected(id) => {
-                                    println!("Disconnecting player! {}", id);
                                     let mut state = (*state).write().unwrap();
                                     let mut players = state.mut_get_players();
                                     players.remove(&id);
+                                },
+                                ClientAuthed(id, name) => {
+                                    let mut state = (*state).write().unwrap();
+                                    let mut players = state.mut_get_players();
+                                    let mut player = players.get_mut(&id).unwrap();
+                                    player.auth(name);
+                                    //TODO: Do something else than auth?
                                 }
                             }
                         },
@@ -162,6 +170,10 @@ impl RpgServer {
         if let Some(socket_thr) = self.socket_thread.take() {
             let _ = socket_thr.join();
         }
+    }
+
+    pub fn local_addr(&self) -> Result<SocketAddr, Error> {
+        self.list.local_addr()
     }
 }
 
