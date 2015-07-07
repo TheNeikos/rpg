@@ -63,6 +63,19 @@ impl Client {
                     SceneModifier::Pop => {
                         scenes.pop();
                     },
+                    SceneModifier::PopUntil(id) => {
+                        loop {
+                            if let Some(scene) = scenes.last() {
+                                println!("{:#?} =?= {:#?}", scene.get_id(), id);
+                                if scene.get_id() == id {
+                                    break;
+                                }
+                            }
+                            scenes.pop();
+
+                            println!("{:#?}", scenes.len());
+                        }
+                    },
                     _ => ()
                 }
             }
