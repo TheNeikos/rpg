@@ -1,4 +1,4 @@
-use server::{RpgServer, WorldState, ServerStatus, Player};
+use server::{RpgServer, WorldState, ServerStatus};
 
 use shared::net::send_packet;
 use shared::packets::Packet;

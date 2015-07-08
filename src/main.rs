@@ -37,7 +37,9 @@ fn main() {
                         println!("{} players currently connected/connecting",
                                  players.len());
                         for player in players.iter() {
-                            println!("  {} -> {}", player.0, player.1);
+                            let t = player.1;
+                            println!("  {} -> {}", player.0, &t);
+                            println!("{}", t.get_id());
                         }
                     },
                     _ => {
