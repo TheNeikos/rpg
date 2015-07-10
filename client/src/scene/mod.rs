@@ -15,7 +15,7 @@ pub type SceneId    = usize;
 
 pub trait Scene {
     fn tick(&mut self, &PistonWindow, &[Box<Scene>]) -> SceneModifier;
-    fn draw(&mut self, &PistonWindow, &[Box<Scene>]);
+    fn draw(&self, &PistonWindow, &[Box<Scene>]);
     fn get_id(&self) -> usize;
 }
 
@@ -34,7 +34,7 @@ pub enum SceneModifier {
 }
 
 pub struct MainMenu {
-    ui: Ui<Glyphs>,
+    ui: Rc<RefCell<Ui<Glyphs>>>,
     should_quit: Rc<RefCell<bool>>,
     should_start: Rc<RefCell<bool>>,
 }
@@ -48,7 +48,7 @@ impl MainMenu {
         println!("New Menu!");
 
         MainMenu {
-            ui: ui,
+            ui: Rc::new(RefCell::new(ui)),
             should_quit: Rc::new(RefCell::new(false)),
             should_start: Rc::new(RefCell::new(false)),
         }
@@ -59,7 +59,7 @@ impl Scene for MainMenu {
     fn tick(&mut self, window: &PistonWindow, other: &[Box<Scene>]) -> SceneModifier {
         use piston_window::Button;
 
-        self.ui.handle_event(window);
+        self.ui.borrow_mut().handle_event(window);
 
         if *self.should_quit.borrow() {
             return SceneModifier::Pop;
@@ -72,23 +72,24 @@ impl Scene for MainMenu {
 
         SceneModifier::Nothing
     }
-    fn draw(&mut self, window: &PistonWindow, other: &[Box<Scene>]) {
+    fn draw(&self, window: &PistonWindow, other: &[Box<Scene>]) {
         window.draw_2d(|c, gl| {
-            Background::new().rgb(1., 1., 1.).draw(&mut self.ui, gl);
+            let mut ui = self.ui.borrow_mut();
+            Background::new().rgb(1., 1., 1.).draw(&mut ui, gl);
 
             let sq = self.should_quit.clone();
             Button::new().dimensions(100., 100.).label("Quit").react(|| {
                 *sq.borrow_mut() = true;
             })
-                .set(0, &mut self.ui);
+                .set(0, &mut ui);
 
             let st = self.should_start.clone();
             Button::new().dimensions(100., 100.).label("Start Game").react(|| {
                 *st.borrow_mut() = true;
             })
-                .set(1, &mut self.ui);
+                .set(1, &mut ui);
 
-            self.ui.draw(c, gl);
+            ui.draw(c, gl);
         });
     }
 
@@ -96,7 +97,7 @@ impl Scene for MainMenu {
 }
 
 pub struct GameTest {
-    ui: Ui<Glyphs>,
+    ui: Rc<RefCell<Ui<Glyphs>>>,
     should_quit: Rc<RefCell<bool>>
 }
 
@@ -109,7 +110,7 @@ impl GameTest {
         println!("New Menu!");
 
         GameTest {
-            ui: ui,
+            ui: Rc::new(RefCell::new(ui)),
             should_quit: Rc::new(RefCell::new(false))
         }
     }
@@ -119,7 +120,8 @@ impl Scene for GameTest {
     fn tick(&mut self, window: &PistonWindow, other: &[Box<Scene>]) -> SceneModifier {
         use piston_window::Button;
 
-        self.ui.handle_event(window);
+        let mut ui = self.ui.borrow_mut();
+        ui.handle_event(window);
 
         if let Some(Button::Keyboard(Key::Escape)) = window.press_args() {
             return SceneModifier::Push(Box::new(IngameMenu::new(window)));
@@ -127,11 +129,11 @@ impl Scene for GameTest {
         SceneModifier::Nothing
     }
 
-    fn draw(&mut self, window: &PistonWindow, other: &[Box<Scene>]) {
+    fn draw(&self, window: &PistonWindow, other: &[Box<Scene>]) {
         window.draw_3d(|stream| {
             stream.clear(
                 ClearData {
-                    color: [0.3, 0.3, 0.3, 1.0],
+                    color: [0.3, 0.3, 0.9, 1.0],
                     depth: 1.0,
                     stencil: 0
                 }
@@ -143,8 +145,9 @@ impl Scene for GameTest {
 }
 
 pub struct IngameMenu {
-    ui: Ui<Glyphs>,
+    ui: Rc<RefCell<Ui<Glyphs>>>,
     should_quit: Rc<RefCell<bool>>,
+    go_back: Rc<RefCell<bool>>,
 }
 
 impl IngameMenu {
@@ -156,8 +159,9 @@ impl IngameMenu {
         println!("New Menu!");
 
         IngameMenu {
-            ui: ui,
+            ui: Rc::new(RefCell::new(ui)),
             should_quit: Rc::new(RefCell::new(false)),
+            go_back: Rc::new(RefCell::new(false)),
         }
     }
 }
@@ -166,10 +170,15 @@ impl Scene for IngameMenu {
     fn tick(&mut self, window: &PistonWindow, other: &[Box<Scene>]) -> SceneModifier {
         use piston_window::Button;
 
-        self.ui.handle_event(window);
+        let mut ui = self.ui.borrow_mut();
+        ui.handle_event(window);
 
         if *self.should_quit.borrow() {
             return SceneModifier::PopUntil(0); // TODO: Use constants!!
+        }
+
+        if *self.go_back.borrow() {
+            return SceneModifier::Pop;
         }
 
         if let Some(Button::Keyboard(Key::Escape)) = window.press_args() {
@@ -178,17 +187,31 @@ impl Scene for IngameMenu {
 
         SceneModifier::Nothing
     }
-    fn draw(&mut self, window: &PistonWindow, other: &[Box<Scene>]) {
+    fn draw(&self, window: &PistonWindow, other: &[Box<Scene>]) {
+
+        {
+            let len = other.len();
+            let (stack, last) = other.split_at(len-1);
+            last[0].draw(window, stack);
+        }
+
         window.draw_2d(|c, gl| {
-            Background::new().rgb(1., 1., 1.).draw(&mut self.ui, gl);
+            let mut ui = self.ui.borrow_mut();
+            Background::new().rgba(1., 1., 1., 0.1).draw(&mut ui, gl);
+
+            let gb = self.go_back.clone();
+            Button::new().dimensions(100., 100.).label("Back to Game").react(|| {
+                *gb.borrow_mut() = true;
+            })
+                .set(0, &mut ui);
 
             let sq = self.should_quit.clone();
             Button::new().dimensions(100., 100.).label("Quit").react(|| {
                 *sq.borrow_mut() = true;
             })
-                .set(0, &mut self.ui);
+                .set(1, &mut ui);
 
-            self.ui.draw(c, gl);
+            ui.draw(c, gl);
         });
     }
 

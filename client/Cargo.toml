@@ -4,16 +4,16 @@ version = "0.1.0"
 authors = ["Marcel Müller <neikos@neikos.email>"]
 
 [dependencies.piston]
-version = "0.2"
+version = "*"
 
 [dependencies.piston_window]
-version = "0.6"
+version = "*"
 
 [dependencies.piston2d-graphics]
-version = "0.3.0"
+version = "*"
 
 [dependencies.conrod]
-version = "0.4.0"
+version = "*"
 
 [dependencies.gfx]
-version = "0.6"
+version = "*"
