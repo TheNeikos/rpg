@@ -6,17 +6,20 @@ use std::rc::Rc;
 use gfx::ClearData;
 use gfx::extra::stream::Stream;
 
-use piston_window::{PistonWindow, Event, Glyphs, Key, PressEvent};
+use piston_window::{PistonWindow, Event, Glyphs, Key, PressEvent, AdvancedWindow};
 
 use conrod::*;
 
-pub type SceneBoxes = Vec<Box<Scene>>;
 pub type SceneId    = usize;
 
 pub trait Scene {
     fn tick(&mut self, &PistonWindow, &[Box<Scene>]) -> SceneModifier;
     fn draw(&self, &PistonWindow, &[Box<Scene>]);
     fn get_id(&self) -> usize;
+
+    fn on_enter(&mut self, &PistonWindow) { }
+
+    fn on_leave(&mut self, &PistonWindow) { }
 }
 
 /// Return value of a Scene Tick
@@ -142,6 +145,16 @@ impl Scene for GameTest {
     }
 
     fn get_id(&self) -> usize { 1 }
+
+    fn on_enter(&mut self, window: &PistonWindow) {
+        println!("Entered");
+        window.clone().set_capture_cursor(true);
+    }
+
+    fn on_leave(&mut self, window: &PistonWindow) {
+        println!("Left");
+        window.clone().set_capture_cursor(false);
+    }
 }
 
 pub struct IngameMenu {

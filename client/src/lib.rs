@@ -14,7 +14,7 @@ use piston_window::*;
 
 use conrod::{Theme, Ui};
 
-use scene::*;
+use scene::{Scene, SceneModifier};
 
 use gfx::Factory;
 use gfx::render::RenderFactory;
@@ -37,7 +37,7 @@ impl Client {
                     "Rust RPG".to_string(), [1024, 768]
                     ).samples(2).into();
 
-            let mut scenes : scene::SceneBoxes = Vec::with_capacity(8);
+            let mut scenes : Vec<Box<Scene>> = Vec::with_capacity(8);
             scenes.push(Box::new(scene::MainMenu::new(&window)));
             for event in window {
                 let mut post_action = scene::SceneModifier::Nothing;
@@ -57,11 +57,17 @@ impl Client {
 
                 match post_action {
                     SceneModifier::Quit => break, // TODO: Graceful shutdown
-                    SceneModifier::Push(sc) => {
+                    SceneModifier::Push(mut sc) => {
+                        scenes.last_mut().unwrap().on_leave(&event);
+                        sc.on_enter(&event);
                         scenes.push(sc);
                     },
                     SceneModifier::Pop => {
-                        scenes.pop();
+                        let mut sc = scenes.pop().unwrap();
+                        sc.on_leave(&event);
+                        if let Some(ref mut nsc) = scenes.last_mut() {
+                            nsc.on_enter(&event);
+                        }
                     },
                     SceneModifier::PopUntil(id) => {
                         loop {
