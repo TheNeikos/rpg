@@ -2,3 +2,21 @@
 name = "client"
 version = "0.1.0"
 authors = ["Marcel Müller <neikos@neikos.email>"]
+
+[dependencies.piston]
+version = "*"
+
+[dependencies.piston_window]
+version = "*"
+
+[dependencies.piston2d-graphics]
+version = "*"
+
+[dependencies.conrod]
+version = "*"
+
+[dependencies.gfx]
+version = "*"
+
+[dependencies.camera_controllers]
+version = "*"
