@@ -17,3 +17,6 @@ version = "*"
 
 [dependencies.gfx]
 version = "*"
+
+[dependencies.camera_controllers]
+version = "*"

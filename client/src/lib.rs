@@ -2,9 +2,12 @@
 
 extern crate piston_window;
 extern crate conrod;
+#[macro_use]
 extern crate gfx;
+extern crate camera_controllers;
 
 mod scene;
+mod graphics;
 
 use std::thread;
 use std::path::Path;
@@ -40,7 +43,7 @@ impl Client {
             let mut scenes : Vec<Box<Scene>> = Vec::with_capacity(8);
             scenes.push(Box::new(scene::MainMenu::new(&window)));
             for event in window {
-                let mut post_action = scene::SceneModifier::Nothing;
+                let post_action;
                 {
                     let mut scenes = scenes.as_mut_slice();
 
